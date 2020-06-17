@@ -34,14 +34,14 @@ source('./xlsx_generator.R')
 
 ### Here the user chooses between read.qgis.csv or read.global.mapper.csv
 ### read.qgis.csv is compatible with ArcGIS profiles
-DEFAULT_CSV_READER <- read.qgis.csv
+CSV_READER <- read.coord.csv
 
 ### Catchment name for example: Sandhills - Reedy Creek
-CATCHMENT_NAME <- 'Landtasia - Mulloon'
+CATCHMENT_NAME <- 'Upper - Molonglo'
 
 ### Survey data reference. For example:
 ### Derived from Spatial Services (NSW) 2016 Braidwood LiDAR survey 1m DEM
-SURVEY_DATA_REF <- 'Derived from Spatial Services (NSW) 2016 Braidwood LiDAR survey 1m DEM'
+SURVEY_DATA_REF <- 'Derived from Spatial Services (NSW) 2016 LiDAR survey 1m DEM'
 
 ### Define the value of surface roughness pre- and post-intervention here:
 ### Applies the same value at every site.
@@ -74,7 +74,7 @@ if(any(missing.files)){
 
 ### This function calculates the geometrical parameters from the coordinates.
 ### It also reads in the coordinate CSVs.
-transects <- creek.model(shr, read.func=read.qgis.csv)
+transects <- creek.model(shr, read.func=CSV_READER)
 
 ### A future version should split the model.output function into several steps
 ### 1 - Calculate the geometrical parameters

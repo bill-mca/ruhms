@@ -1,6 +1,6 @@
 #library(geometry)
 library(sp)
-library('./section_charts')
+source('./section_charts.R')
 
 
 ###    Really Useful Hydraulic Modelling Scripts (RUHMS) is a program for basic
@@ -42,6 +42,13 @@ read.qgis.csv <- function(fname){
   return(as.matrix(transect.data))
 }
 
+read.coord.csv <- function(fname){
+  raw.transect <- read.csv(fname)
+  transect.data <- raw.transect[ , c(1,4)]
+  colnames(transect.data) <- c('distance', 'elevation')
+  return(as.matrix(transect.data))
+}
+
 ### this version of transect.area uses the geometry plugin instea of sp
 ## transect.area <- function(coords){
 ##   # Takes a numerical data frame specifying coordinates for
@@ -76,20 +83,30 @@ transect.model <- function(transect.coords, topbank.elevation,
     ### I wrote the original version before I was familiar with the convention.
     thalweg.index <- which.min(transect.coords[ , 2])
     tmp.thalweg.elevation <- min(transect.coords[ , 2])
+    msg <- paste(
+        'thalweg: ', transect.coords[thalweg.index, 2], '\n',
+        'left bank: ', max(transect.coords[1:thalweg.index, 2]), '\n',
+        'right bank: ',
+        max(transect.coords[thalweg.index:nrow(transect.coords), 2]), '\n',
+        'topbank: ', topbank.elevation
+        )
     if(!any(transect.coords[1:thalweg.index , 2] >= topbank.elevation)){
-        stop(paste('specified topbank elevation is higher than the right bank'))
+        message('Specified topbank elevation is higher than the right bank.')
+        message(msg)
     }
     ### Assert that the parameters given make sense
     if(!any(transect.coords[thalweg.index:nrow(transect.coords), 2] >=
             topbank.elevation)){
-        stop(paste('specified topbank elevation is higher than the left bank'))
+        message('specified topbank elevation is higher than the left bank')
+        message(msg)
     }
     if(!is.na(thalweg.elevation)){
-        print(paste(site.code, 'thalweg specified at', thalweg.elevation,
-                    'elevation is', tmp.thalweg.elevation, 'in the coordinates',
-                    '- overwriting')
-              )
-        }
+        message(paste(
+            'site', site.code, 'thalweg specified at:', thalweg.elevation,
+            '\nelevation is', tmp.thalweg.elevation, 'in the coordinates\n',
+            '... overwriting'
+        ))
+    }
     thalweg.elevation <- tmp.thalweg.elevation
     ### choose which points are at the extreme left and right banks:
     l.bank.index <- which(transect.coords[1:thalweg.index , 2]
@@ -237,25 +254,6 @@ plot.transect <- function(transect.model, intervention=FALSE, output.dir=NULL){
     if(!is.null(output.dir)){ dev.off() }
 }
 
-### A version of creek.model that uses tryCatch to skip sites with innadequate
-### or nonsensical input data
-## creek.model <- function(levels, read.func=read.qgis.csv,
-##                         input.dir='./input_csvs/'){
-##     #print(read.func('./input_csvs/DSH1.1.csv'))
-##     if(is.null(levels$fnames)){
-##         fnames <- paste(input.dir, levels$site.code, '.csv', sep='')
-##     } else { fnames <- levels$fnames }
-##     transects <- vector('list', nrow(levels))
-##     for(i in 1:nrow(levels)){
-##         tryCatch(
-##             expr = {
-##                 transects[i] <- transect.model(read.func(fnames[i]))},
-##             error = { warning(paste(fnames[i], 'failed to load.')) }
-##         )
-##     }
-##     return(transects)
-## }
-
 creek.model <- function(levels, read.func=read.qgis.csv,
                         input.dir='./input_csvs/'){
     ### This function operates on all sites along a creek returning a list I've
@@ -267,14 +265,24 @@ creek.model <- function(levels, read.func=read.qgis.csv,
     } else { fnames <- levels$fnames }
     transects <- vector('list', nrow(levels))
     for(i in 1:nrow(levels)){
-        print(fnames[i])
-        transects[[i]] <- transect.model(read.func(fnames[i]),
-                                         levels[i, 'topbank.elevation'],
-                                         levels[i, 'spill.elevation'],
-                                         levels[i, 'thalweg.elevation'],
-                                         levels[i, 'distance.to.bottom'],
-                                         levels[i, 'site.code']
-                                         )
+        #print(fnames[i])
+        tryCatch(
+            transects[[i]] <- transect.model(
+                read.func(fnames[i]),
+                levels[i, 'topbank.elevation'],
+                levels[i, 'spill.elevation'],
+                levels[i, 'thalweg.elevation'],
+                levels[i, 'distance.to.bottom'],
+                levels[i, 'site.code']
+            ),
+            error=function(cond){
+                message(paste(
+                    '\n\nsite', levels[i, 'site.code'], 'failed. Message:'
+                ))
+                message(cond)
+                message('\n\n')
+                }
+        )
     }
     return(transects)
 }
