@@ -12,19 +12,11 @@ source('./xlsx_generator.R')
 
 ### Development to do:
 ###
-### Improve the way that data flows through the different steps. Doing so will
-####### ensure one lot of pre-intervention depth numbers is used throughout
-####### which will solve the disagreement between excel and R number noted.
-####### See also, comments on coord.list
+### Make all output (hydraulics and s-secs) go into a single folder
+####### which is more intuitive and allows me to write a .gitignore
 
 ### Known issues:
 ###
-### Excel calculates depth different to R because R uses the thalweg from the
-####### provided coordinates whereas excel uses the thalweg you feed it.
-####### I've observed a 5% difference in calculated unit.stream.power as a
-####### result. Error should be proportional to imprecision of measurement of
-####### thalweg.elevation from the profile chart.
-####### I made a hotfix by explicitly overwriting input thalweg.elevation.
 ### Structure xsec.area != xsec.area - pi.xsec.area in every case. I suspect
 ####### This is the result of rough interpolation of coordinates during
 ####### calculation of xsec areas.
@@ -34,7 +26,7 @@ source('./xlsx_generator.R')
 
 ### Here the user chooses between read.qgis.csv or read.global.mapper.csv
 ### read.qgis.csv is compatible with ArcGIS profiles
-CSV_READER <- read.coord.csv
+CSV_READER <- read.qgis.csv
 
 ### Catchment name for example: Sandhills - Reedy Creek
 CATCHMENT_NAME <- 'Upper - Molonglo'
@@ -127,8 +119,11 @@ hydrau <- model.calculation(cbind(model.output,
                                   shr[ , c('gradient', 'pi.gradient',
                                            'roughness', 'pi.roughness')]))
 
+#Limit the output of hydraulic graphs to just the sites we are interested in:
+hydrau2 <- hydrau[c(2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18), ]
+
 ### This function draws graphs and writes a CSV
-hydraulics.output(hydrau)
+hydraulics.output(hydrau2, legend.location='topright', cex.names=0.2, cex=1)
 
 ### Generate an Excel spreadheet version of the hydraulic calculations.
 ### This'll be saved into the working directory instead of the timestamped

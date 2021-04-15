@@ -280,7 +280,7 @@ creek.model <- function(levels, read.func=read.qgis.csv,
                     '\n\nsite', levels[i, 'site.code'], 'failed. Message:'
                 ))
                 message(cond)
-                message('\n\n')
+                message('Check that you\'ve picked an appropriate CSV reader\n\n')
                 }
         )
     }
@@ -420,25 +420,25 @@ calculate.gradient <- function(shr, pi=FALSE, rowname.var='site.code'){
 }
 
 MCCC.barplot <- function(df, arg.names=NULL, main='', xlab='', ylab='',
-                         fname=NULL, Cex.Names=0.35){
-    colours=c(
-        MCCC.green = '#395624',
-        MCCC.blue = '#5876b0',
-        MCCC.brown = '#6b2223',
-        MCCC.teal = '#1f6e6e',
-        MCCC.purple = '#6647a0',
-        MCCC.grey = '#4e4e4e'
-    )
-    if(!is.null(fname)){ svg(fname, height=4, width=10) }
-    if(ncol(df)>1){ colours <- colours[1:ncol(df)]
-    } else { colours <- colours[1] }
-    plot.new()
-    barplot(height=t(as.matrix(df)), col=colours, beside=T,
-            names.arg=arg.names, cex.names=Cex.Names, space=c(0.2,1), xlab=xlab,
-            main=main, border=NA)
-    title(ylab=ylab, line = 2.5)
-    legend('topleft', legend=c('pre-intervention', 'post-intervention'), fill=colours[1:2], bty='n', border=NA)
-    if(!is.null(fname)){ dev.off() }
+                         fname=NULL, legend.location='topright', ...){
+  colours=c(
+    MCCC.green = '#395624',
+    MCCC.blue = '#5876b0',
+    MCCC.brown = '#6b2223',
+    MCCC.teal = '#1f6e6e',
+    MCCC.purple = '#6647a0',
+    MCCC.grey = '#4e4e4e'
+  )
+  if(!is.null(fname)){ svg(fname, height=4, width=10) }
+  if(ncol(df)>1){ colours <- colours[1:ncol(df)]
+  } else { colours <- colours[1] }
+  plot.new()
+  barplot(height=t(as.matrix(df)), col=colours, beside=T,
+          names.arg=arg.names, space=c(0.2,1), xlab=xlab,
+          main=main, border=NA, ...)
+  title(ylab=ylab, line = 2.5)
+  legend(legend.location, legend=c('pre-intervention', 'post-intervention'), fill=colours[1:2], bty='n', border=NA)
+  if(!is.null(fname)){ dev.off() }
 }
 
 ## MCCC.barplot <- function(df, arg.names=NULL, fname=NULL, ylab=NULL, ...){
@@ -462,40 +462,41 @@ MCCC.barplot <- function(df, arg.names=NULL, main='', xlab='', ylab='',
 ##     if(!is.null(fname)){ dev.off() }
 ## }
 
-hydraulics.output <- function(hydraulics.data, width=10, height=4, legend.location='topleft'){
+hydraulics.output <- function(hydraulics.data, width=10, height=4, ...){
   output.dir <- paste('Hydraulics_',
                       format(Sys.time(), "%Y-%m-%d-%H-%M"), '/', sep='')
   dir.create(output.dir)
   write.csv(hydraulics.data, paste(output.dir, 'hydraulics_output.csv', sep=''))
   ### XSEC
-  MCCC.barplot(hydrau[ ,c('xsec.area', 'pi.xsec.area')], hydrau$site.code, 'Cross Sectional Area', ylab=expression(paste("cross sectional area m"^"2", "")), xlab='Site', fname=paste(output.dir, 'Cross Sectional Area.svg', sep=''))
-
-               ### VELOCITY
-               MCCC.barplot(hydrau[ , c('velocity', 'pi.velocity')],
-                            hydrau$site.code,
-                            'Stream Velocity',
-                            ylab=expression(paste("Stream Velocity ms"^"-1", "")),
-                            xlab='Site',
-                            fname=paste(output.dir, 'Stream Velocity.svg', sep='')
-               )
-
-               ### Discharge
-  MCCC.barplot(hydrau[ ,c('discharge', 'pi.discharge')], hydrau$site.code, 'Discharge', ylab=expression(paste("Discharge m"^"3", "s"^"-1", "")), xlab='Site', fname=paste(output.dir, 'Discharge.svg', sep=''))
-
-               ### Shear Stress
-  MCCC.barplot(hydrau[ ,c('traction', 'pi.traction')], hydrau$site.code, 'Shear Stress', ylab=expression(paste("Shear Stress N")), xlab='Site', fname=paste(output.dir, 'Shear Stress.svg', sep=''))
-
-               ### Stream Power
-  MCCC.barplot(hydrau[ ,c('stream.power', 'pi.stream.power')], hydrau$site.code, 'Stream Power', ylab=expression(paste("Stream Power W")), xlab='Site', fname=paste(output.dir, 'Stream Power.svg', sep=''))
-
-               ### Unit Stream Power
-  MCCC.barplot(hydrau[ ,c('unit.stream.power', 'pi.unit.stream.power')], hydrau$site.code, 'Unit Stream Power', ylab=expression(paste("Unit Stream Power Wm"^"-2", "")), xlab='Site', fname=paste(output.dir, 'Unit Stream Power.svg', sep=''))
-
-### Froude Number
-  MCCC.barplot(hydrau[ ,c('froude.number', 'pi.froude.number')], hydrau$site.code, 'Froude Number', ylab=expression(paste("Froude Number")), xlab='Site', fname=paste(output.dir, 'Froude Number.svg', sep=''))
-
+  MCCC.barplot(hydraulics.data[ ,c('xsec.area', 'pi.xsec.area')], hydraulics.data$site.code, 'Cross Sectional Area', ylab=expression(paste("cross sectional area m"^"2", "")), xlab='Site', fname=paste(output.dir, 'Cross Sectional Area.svg', sep=''), ...)
+  
+  ### VELOCITY
+  MCCC.barplot(hydraulics.data[ , c('velocity', 'pi.velocity')],
+               hydraulics.data$site.code,
+               'Stream Velocity',
+               ylab=expression(paste("Stream Velocity ms"^"-1", "")),
+               xlab='Site',
+               fname=paste(output.dir, 'Stream Velocity.svg', sep=''),
+               ...
+  )
+  
+  ### Discharge
+  MCCC.barplot(hydraulics.data[ ,c('discharge', 'pi.discharge')], hydraulics.data$site.code, 'Discharge', ylab=expression(paste("Discharge m"^"3", "s"^"-1", "")), xlab='Site', fname=paste(output.dir, 'Discharge.svg', sep=''), ...)
+  
+  ### Shear Stress
+  MCCC.barplot(hydraulics.data[ ,c('traction', 'pi.traction')], hydraulics.data$site.code, 'Shear Stress', ylab=expression(paste("Shear Stress N")), xlab='Site', fname=paste(output.dir, 'Shear Stress.svg', sep=''), ...)
+  
+  ### Stream Power
+  MCCC.barplot(hydraulics.data[ ,c('stream.power', 'pi.stream.power')], hydraulics.data$site.code, 'Stream Power', ylab=expression(paste("Stream Power W")), xlab='Site', fname=paste(output.dir, 'Stream Power.svg', sep=''), ...)
+  
+  ### Unit Stream Power
+  MCCC.barplot(hydraulics.data[ ,c('unit.stream.power', 'pi.unit.stream.power')], hydraulics.data$site.code, 'Unit Stream Power', ylab=expression(paste("Unit Stream Power Wm"^"-2", "")), xlab='Site', fname=paste(output.dir, 'Unit Stream Power.svg', sep=''), ...)
+  
+  ### Froude Number
+  MCCC.barplot(hydraulics.data[ ,c('froude.number', 'pi.froude.number')], hydraulics.data$site.code, 'Froude Number', ylab=expression(paste("Froude Number")), xlab='Site', fname=paste(output.dir, 'Froude Number.svg', sep=''), ...)
+  
   ### Gradient
-  MCCC.barplot(hydrau[ ,c('gradient', 'pi.gradient')], hydrau$site.code, 'Gradient', ylab=expression(paste("Gradient mm"^"-1")), xlab='Site', fname=paste(output.dir, 'Gradient.svg', sep=''))
+  MCCC.barplot(hydraulics.data[ ,c('gradient', 'pi.gradient')], hydraulics.data$site.code, 'Gradient', ylab=expression(paste("Gradient mm"^"-1")), xlab='Site', fname=paste(output.dir, 'Gradient.svg', sep=''), ...)
 }
 
 

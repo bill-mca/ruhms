@@ -1,3 +1,9 @@
+# RUHMS output files
+*.xlsx
+x-sections*
+Hydraulics*
+*Excel.csv
+
 # History files
 .Rhistory
 .Rapp.history
